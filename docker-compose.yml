@@ -28,7 +28,7 @@ services:
     image: mariadb
     container_name: nextcloud-db
     restart: always
-    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
+    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW --innodb_read_only_compressed=OFF
     volumes:
       - ./data/db:/var/lib/postgresql/data
     depends_on:
