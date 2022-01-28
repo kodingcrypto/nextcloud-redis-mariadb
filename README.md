@@ -1,1 +1,1 @@
-# nextcloud-redis-postgresql
+# nextcloud-redis-mariadb
