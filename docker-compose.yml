@@ -18,19 +18,32 @@ services:
       - ./data/redis:/data:rw
     ports:
       - 6379:6379
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 3s
+      timeout: 3s
+      retries: 30
 
   db:
-    image: postgres
+    image: mariadb
     container_name: nextcloud-db
     restart: always
+    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
     volumes:
       - ./data/db:/var/lib/postgresql/data
     depends_on:
       - redis
+    healthcheck:
+      test: "/usr/bin/mysql --user=nextcloud --password=password --execute \"SHOW DATABASES;\""
+      # test: "/usr/local/mysql/bin/mysql --user=foo --password=foo --execute \"SHOW DATABASES;\""
+      interval: 2s
+      timeout: 3s
+      retries: 15
     environment:
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=nextcloud
-      - POSTGRES_USER=nextcloud
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_PASSWORD=password
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER=nextcloud
 
   app:
     image: nextcloud
@@ -39,20 +52,21 @@ services:
     ports:
       - 8080:80
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     volumes:
       - ./data/nextcloud/nextcloud:/var/www/html
       - ./data/nextcloud/apps:/var/www/html/custom_apps
       - ./data/nextcloud/config:/var/www/html/config
       - ./data/nextcloud/data:/var/www/html/data
-
     environment:
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=nextcloud
-      - POSTGRES_USER=nextcloud
-      - POSTGRES_HOST=db
+      - MYSQL_PASSWORD=password
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER=nextcloud
+      - MYSQL_HOST=db
       - NEXTCLOUD_ADMIN_USER=andre
       - NEXTCLOUD_ADMIN_PASSWORD=admin
-      - NEXTCLOUD_TRUSTED_DOMAINS=192.168.1.8
+      - NEXTCLOUD_TRUSTED_DOMAINS=127.0.0.1 192.168.1.8
       - REDIS_HOST=redis
