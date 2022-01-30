@@ -30,7 +30,7 @@ services:
     restart: always
     command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW --innodb_read_only_compressed=OFF
     volumes:
-      - ./data/db:/var/lib/postgresql/data
+      - ./data/db:/var/lib/mysql
     depends_on:
       - redis
     healthcheck:
@@ -71,4 +71,12 @@ services:
       # - NEXTCLOUD_TRUSTED_DOMAINS=127.0.0.1
       - NEXTCLOUD_TRUSTED_DOMAINS=192.168.1.8 #YOUR-NEXTLOUD-IP-OR-DOMAIN
       - OVERWRITEPROTOCOL=http
+      - LOG_TYPE=file
+      - LOGFILE=/var/log/nextcloud.log
+      - LOGFILEMODE=0640
+      - LOGLEVEL=0
+      - LOGDATEFORMAT=F d, Y H:i:s
+      - LOGTIMEZONE=Asia/Bangkok
+      - LOG_QUERY=true
+      - LOG_ROTATE_SIZE=100 * 1024 * 1024
       - REDIS_HOST=redis
